@@ -6,6 +6,7 @@ import ImageIcon from './components/icons/ImageIcon';
 import { TimedLyric } from './types';
 import Loader from './components/Loader';
 import VideoGenerator from './components/VideoGenerator';
+import ImageGenerator from './components/ImageGenerator';
 import VideoIcon from './components/icons/VideoIcon';
 import LockIcon from './components/icons/LockIcon';
 import FeedbackModal from './components/FeedbackModal';
@@ -13,7 +14,7 @@ import PrevIcon from './components/icons/PrevIcon';
 import NextIconCombined from './components/icons/NextIcon';
 
 
-type AppState = 'CHOOSER' | 'FORM' | 'TIMING' | 'PREVIEW' | 'VIDEO_GENERATOR';
+type AppState = 'CHOOSER' | 'FORM' | 'TIMING' | 'PREVIEW' | 'VIDEO_GENERATOR' | 'IMAGE_GENERATOR';
 type InputMethod = 'upload' | 'link';
 
 const DEFAULT_BG_IMAGE = 'https://storage.googleapis.com/aistudio-hosting/workspace-template-assets/lyric-video-maker/default_bg.jpg';
@@ -234,9 +235,9 @@ const App: React.FC = () => {
   const handleUnlockAiGenerator = () => {
     if (isAiGeneratorUnlocked) return;
     const password = prompt('請輸入密碼以解鎖 AI 功能：');
-    if (password === '2580') {
+    if (password === '0000') {
       setIsAiGeneratorUnlocked(true);
-      alert('AI 影片生成器已解鎖！');
+      alert('AI 功能已解鎖！');
     } else if (password !== null) { // User didn't click cancel
       alert('密碼錯誤！');
     }
@@ -246,13 +247,15 @@ const App: React.FC = () => {
   const renderContent = () => {
     switch (appState) {
       case 'CHOOSER':
+        const containerWidth = isAiGeneratorUnlocked ? 'max-w-5xl' : 'max-w-2xl';
+        const gridCols = isAiGeneratorUnlocked ? 'md:grid-cols-3' : 'md:grid-cols-1';
         return (
-          <div className="w-full max-w-2xl p-8 space-y-8 relative">
+          <div className={`w-full ${containerWidth} p-8 space-y-8 relative transition-all duration-500`}>
             <div className="text-center">
                 <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl">Creative Suite</h1>
                 <p className="mt-3 text-lg text-gray-400">Choose a tool to start your creation.</p>
             </div>
-            <div className={`grid grid-cols-1 ${isAiGeneratorUnlocked ? 'md:grid-cols-2' : ''} gap-6`}>
+            <div className={`grid grid-cols-1 ${gridCols} gap-6`}>
                 <div 
                     onClick={() => setAppState('FORM')} 
                     className="group relative p-6 bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-lg border border-gray-700 hover:border-gray-500 transition-all duration-300 cursor-pointer flex flex-col items-center text-center"
@@ -261,22 +264,33 @@ const App: React.FC = () => {
                     <h3 className="mt-4 text-xl font-bold text-white">Lyric Video Maker</h3>
                     <p className="mt-2 text-sm text-gray-400">Create dynamic lyric videos synced with your music and background art.</p>
                 </div>
+
                 {isAiGeneratorUnlocked && (
-                  <div 
-                      onClick={() => setAppState('VIDEO_GENERATOR')}
-                      className="group relative p-6 bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-lg border border-gray-700 hover:border-gray-500 transition-all duration-300 cursor-pointer flex flex-col items-center text-center animate-fade-in"
-                  >
-                      <VideoIcon className="w-16 h-16 text-gray-400 group-hover:text-white transition-colors"/>
-                      <h3 className="mt-4 text-xl font-bold text-white">AI Video Generator</h3>
-                      <p className="mt-2 text-sm text-gray-400">Generate a short video from an image and a text prompt using Veo.</p>
-                  </div>
+                  <>
+                    <div 
+                        onClick={() => setAppState('IMAGE_GENERATOR')}
+                        className="group relative p-6 bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-lg border border-gray-700 hover:border-gray-500 transition-all duration-300 cursor-pointer flex flex-col items-center text-center animate-fade-in"
+                    >
+                        <ImageIcon className="w-16 h-16 text-gray-400 group-hover:text-white transition-colors"/>
+                        <h3 className="mt-4 text-xl font-bold text-white">Generate images with a prompt</h3>
+                        <p className="mt-2 text-sm text-gray-400">Create a unique image from a text description using AI.</p>
+                    </div>
+                    <div 
+                        onClick={() => setAppState('VIDEO_GENERATOR')}
+                        className="group relative p-6 bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-lg border border-gray-700 hover:border-gray-500 transition-all duration-300 cursor-pointer flex flex-col items-center text-center animate-fade-in"
+                    >
+                        <VideoIcon className="w-16 h-16 text-gray-400 group-hover:text-white transition-colors"/>
+                        <h3 className="mt-4 text-xl font-bold text-white">Animate images with Veo</h3>
+                        <p className="mt-2 text-sm text-gray-400">Generate a short video from an image and a text prompt using Veo.</p>
+                    </div>
+                  </>
                 )}
             </div>
             {!isAiGeneratorUnlocked && (
               <div className="absolute bottom-0 right-0 p-2">
                 <button 
                   onClick={handleUnlockAiGenerator} 
-                  title="解鎖進階功能"
+                  title="天選之桶"
                   className="p-2 rounded-full hover:bg-gray-700/50 transition-colors"
                 >
                   <LockIcon className="w-6 h-6 text-gray-500 hover:text-white" />
@@ -294,6 +308,8 @@ const App: React.FC = () => {
             `}</style>
           </div>
         );
+      case 'IMAGE_GENERATOR':
+        return <ImageGenerator onBack={handleBackToChooser} />;
       case 'VIDEO_GENERATOR':
         return <VideoGenerator onBack={handleBackToChooser} />;
       case 'TIMING':
